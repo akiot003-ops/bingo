@@ -13,13 +13,14 @@
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:linear-gradient(160deg,#fff0f6,#ffe6f0);font-family:"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);min-height:100%;padding:16px}
-.wrap{max-width:520px;margin:0 auto}
+.wrap{max-width:520px;margin:0 auto;display:none}
+.wrap.show{display:block}
 header{text-align:center;margin-bottom:14px}
 h1{font-size:22px;background:linear-gradient(90deg,var(--pink-dark),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0}
-.namebox{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px}
+.namebox{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .namebox label{font-size:12px;color:var(--sub);font-weight:bold}
-.namebox input{width:160px;text-align:center;font-weight:bold}
-.month-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.namebox input{width:150px;text-align:center;font-weight:bold}
+.store-row,.month-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
 select,button,input{font-family:inherit;font-size:15px;border-radius:10px;border:1px solid #ffc2da;padding:8px 12px;background:#fff;color:var(--text)}
 button{background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:#fff;border:none;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 #d9407e}
 button:active{transform:translateY(2px);box-shadow:none}
@@ -47,12 +48,31 @@ button.admin.on{background:linear-gradient(135deg,var(--gold),#ffb300);box-shado
 .modal p{margin:0 0 10px;font-weight:bold;color:var(--text)}
 .modal input{width:100%;margin-bottom:12px}
 .modal .row{display:flex;gap:8px;justify-content:flex-end}
+.lockscreen{position:fixed;inset:0;background:linear-gradient(160deg,#ff7bac,#c94a8c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000;color:#fff;padding:24px;text-align:center}
+.lockscreen h2{font-size:24px;margin:0 0 6px}
+.lockscreen p{font-size:13px;opacity:.9;margin:0 0 18px}
+.lockscreen input{width:200px;text-align:center;font-size:20px;letter-spacing:4px;border:none;margin-bottom:14px}
+.lockscreen button{background:#fff;color:var(--pink-dark);box-shadow:none;padding:10px 28px}
+.lockscreen .err{color:#fff;background:rgba(0,0,0,.2);border-radius:8px;padding:6px 12px;font-size:12px;margin-top:10px;display:none}
+.lockscreen .err.show{display:block}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div class="lockscreen" id="lockscreen">
+  <h2>Plus+</h2>
+  <p>パスコードを入力してください</p>
+  <input id="lockInput" type="password" inputmode="numeric">
+  <button id="lockBtn">開く</button>
+  <div class="err" id="lockErr">パスコードが違います</div>
+</div>
+
+<div class="wrap" id="wrap">
 <header>
   <h1>💗 PLUSビンゴカード 💗</h1>
+  <div class="store-row">
+    <select id="storeSel"></select>
+  </div>
   <div class="namebox">
     <label for="nameInput">お名前</label>
     <input id="nameInput" type="text" placeholder="お名前を入力">
@@ -60,6 +80,7 @@ button.admin.on{background:linear-gradient(135deg,var(--gold),#ffb300);box-shado
   <div class="month-row">
     <select id="monthSel"></select>
     <button class="ghost" id="addMonthBtn">＋月を追加</button>
+    <button class="ghost" id="delMonthBtn">－月を削除</button>
     <button class="admin" id="adminBtn">🔒管理者</button>
   </div>
 </header>
@@ -80,47 +101,60 @@ button.admin.on{background:linear-gradient(135deg,var(--gold),#ffb300);box-shado
 
 <script>
 const DEFAULT_ITEMS=["出勤\n8日以上","出勤\n15日以上","通常日記\n10投稿","オキニトーク\n30人送信","姫予約\n3件","本指名\n5名","120分コース\n予約","動画日記\n5本","口コミ\n3件","求人口コミ\n1件投稿","性病検査","マイガール限定日記\n10本","イベント\n翌日出勤","YouTube\n出演","ショート動画\n出演","女性応援ポイント\n1000pt獲得"];
-const KEY="plus-bingo-data-v1";
-const ADMIN_PASS="0000";
+const KEY="plus-bingo-data-v2";
+const ADMIN_PASS="8812";
+const ENTRY_PASS="1194";
 const GAS_URL="https://script.google.com/macros/s/AKfycbyI_csB9Jjq8HMcMgTzQDajb_nReHIZtYnOi0bzlsPsu7ndn_pl3Yc-Fs7p8Zeu2DtK/exec";
 let isAdmin=false;
 
 function sendToSheet(payload){
   try{
-    fetch(GAS_URL,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify(payload)
-    }).catch(()=>{});
+    fetch(GAS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(()=>{});
   }catch(e){}
 }
 
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
 function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
 let data=load();
-if(!data.months) data.months={};
-if(typeof data.name!=="string") data.name="";
 function currentMonthKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
-if(!Object.keys(data.months).length){
-  const k=currentMonthKey();
-  data.months[k]={cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]};
-  data.current=k;
-}
-if(!data.current||!data.months[data.current]) data.current=Object.keys(data.months)[0];
+function newMonth(){return{cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]}}
+function newStore(){const k=currentMonthKey();return{name:"",current:k,months:{[k]:newMonth()}}}
+if(!data.stores) data.stores={};
+const PRESET_STORES=["梅田店","十三店","難波店","東大阪店"];
+PRESET_STORES.forEach(name=>{
+  if(!data.stores[name]) data.stores[name]=newStore();
+});
+if(!data.currentStore||!data.stores[data.currentStore]) data.currentStore=PRESET_STORES[0];
+function curStore(){return data.stores[data.currentStore]}
 
 const nameInput=document.getElementById("nameInput");
-nameInput.value=data.name;
-nameInput.addEventListener("change",()=>{ data.name=nameInput.value; save(data); });
+function loadNameField(){
+  nameInput.value=curStore().name||"";
+  nameInput.readOnly=!isAdmin && !!curStore().name;
+}
+nameInput.addEventListener("change",()=>{ curStore().name=nameInput.value; save(data); loadNameField(); });
+
+function storeSel(){return document.getElementById("storeSel")}
+function renderStores(){
+  const sel=storeSel();
+  sel.innerHTML="";
+  Object.keys(data.stores).forEach(k=>{
+    const opt=document.createElement("option");
+    opt.value=k;opt.textContent=k;
+    if(k===data.currentStore)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
 
 function monthSel(){return document.getElementById("monthSel")}
 function renderMonths(){
   const sel=monthSel();
   sel.innerHTML="";
-  Object.keys(data.months).sort().forEach(k=>{
+  const s=curStore();
+  Object.keys(s.months).sort().forEach(k=>{
     const opt=document.createElement("option");
     opt.value=k;opt.textContent=k;
-    if(k===data.current)opt.selected=true;
+    if(k===s.current)opt.selected=true;
     sel.appendChild(opt);
   });
 }
@@ -128,7 +162,8 @@ function renderMonths(){
 function renderGrid(){
   const g=document.getElementById("grid");
   g.innerHTML="";
-  const m=data.months[data.current];
+  const s=curStore();
+  const m=s.months[s.current];
   m.cells.forEach((c,i)=>{
     const cell=document.createElement("div");
     cell.className="cell"+(c.done?" done":"")+(isAdmin?" unlocked":"");
@@ -142,14 +177,14 @@ function renderGrid(){
           c.done=false;
           save(data);
           renderGrid();
-          sendToSheet({name:data.name,month:data.current,index:i+1,text:c.text,done:c.done});
+          sendToSheet({store:data.currentStore,name:s.name,month:s.current,index:i+1,text:c.text,done:c.done});
         },true);
       }else{
         c.done=true;
         save(data);
         renderGrid();
         checkBingo();
-        sendToSheet({name:data.name,month:data.current,index:i+1,text:c.text,done:c.done});
+        sendToSheet({store:data.currentStore,name:s.name,month:s.current,index:i+1,text:c.text,done:c.done});
       }
     });
     g.appendChild(cell);
@@ -166,7 +201,8 @@ function getLines(){
   return L;
 }
 function checkBingo(){
-  const m=data.months[data.current];
+  const s=curStore();
+  const m=s.months[s.current];
   const lines=getLines();
   m.lines=m.lines||[];
   lines.forEach((line,idx)=>{
@@ -175,6 +211,7 @@ function checkBingo(){
       m.lines.push(idx);
       save(data);
       celebrate();
+      sendToSheet({type:"bingo",store:data.currentStore,name:s.name,month:s.current});
     }
   });
 }
@@ -230,17 +267,48 @@ function openModal(title,type,onOk,hideInput){
   modalInput.addEventListener("keydown",keyHandler);
 }
 
+storeSel().addEventListener("change",e=>{
+  data.currentStore=e.target.value;
+  save(data);
+  loadNameField();
+  renderMonths();
+  renderGrid();
+});
+
 document.getElementById("addMonthBtn").addEventListener("click",()=>{
   openModal("追加する月を入力（例: 2026-10）","text",(val)=>{
     if(!val) return;
-    if(!data.months[val]){
-      data.months[val]={cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]};
-    }
-    data.current=val;
+    const s=curStore();
+    if(!s.months[val]) s.months[val]=newMonth();
+    s.current=val;
     save(data);
     renderMonths();
     renderGrid();
   });
+});
+monthSel().addEventListener("change",e=>{
+  curStore().current=e.target.value;
+  save(data);
+  renderGrid();
+});
+
+document.getElementById("delMonthBtn").addEventListener("click",()=>{
+  const s=curStore();
+  const target=s.current;
+  openModal(target+" を削除しますか？（このマスのデータも消えます）","text",()=>{
+    delete s.months[target];
+    const remaining=Object.keys(s.months).sort();
+    if(remaining.length){
+      s.current=remaining[0];
+    }else{
+      const k=currentMonthKey();
+      s.months[k]=newMonth();
+      s.current=k;
+    }
+    save(data);
+    renderMonths();
+    renderGrid();
+  },true);
 });
 
 const adminBtn=document.getElementById("adminBtn");
@@ -253,6 +321,7 @@ adminBtn.addEventListener("click",()=>{
     isAdmin=false;
     updateAdminBtn();
     renderGrid();
+    loadNameField();
     return;
   }
   openModal("管理者パスコードを入力","password",(val)=>{
@@ -260,19 +329,36 @@ adminBtn.addEventListener("click",()=>{
       isAdmin=true;
       updateAdminBtn();
       renderGrid();
+      loadNameField();
     }
   });
 });
 
-monthSel().addEventListener("change",e=>{
-  data.current=e.target.value;
-  save(data);
+function initApp(){
+  renderStores();
+  loadNameField();
+  renderMonths();
   renderGrid();
-});
+  updateAdminBtn();
+  document.getElementById("wrap").classList.add("show");
+}
 
-renderMonths();
-renderGrid();
-updateAdminBtn();
+const lockscreen=document.getElementById("lockscreen");
+const lockInput=document.getElementById("lockInput");
+const lockBtn=document.getElementById("lockBtn");
+const lockErr=document.getElementById("lockErr");
+function tryUnlock(){
+  if(lockInput.value===ENTRY_PASS){
+    lockscreen.style.display="none";
+    initApp();
+  }else{
+    lockErr.classList.add("show");
+    lockInput.value="";
+  }
+}
+lockBtn.addEventListener("click",tryUnlock);
+lockInput.addEventListener("keydown",e=>{ if(e.key==="Enter") tryUnlock(); });
+setTimeout(()=>lockInput.focus(),300);
 </script>
 </body>
 </html>
