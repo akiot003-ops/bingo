@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>PLUSビンゴカード</title>
+<style>
+:root{
+  --pink:#ff7bac; --pink-dark:#ff4d94; --pink-light:#ffe3ef; --gold:#ffc93c;
+  --bg:#fff5f9; --card:#ffffff; --text:#5a2e42; --sub:#a15a78;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:linear-gradient(160deg,#fff0f6,#ffe6f0);font-family:"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);min-height:100%;padding:16px}
+.wrap{max-width:520px;margin:0 auto}
+header{text-align:center;margin-bottom:14px}
+h1{font-size:22px;background:linear-gradient(90deg,var(--pink-dark),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0}
+.namebox{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px}
+.namebox label{font-size:12px;color:var(--sub);font-weight:bold}
+.namebox input{width:160px;text-align:center;font-weight:bold}
+.month-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+select,button,input{font-family:inherit;font-size:15px;border-radius:10px;border:1px solid #ffc2da;padding:8px 12px;background:#fff;color:var(--text)}
+button{background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:#fff;border:none;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 #d9407e}
+button:active{transform:translateY(2px);box-shadow:none}
+button.ghost{background:#fff;color:var(--pink-dark);border:1px solid var(--pink);box-shadow:none}
+button.admin{background:linear-gradient(135deg,#8a8f9b,#5b6070);box-shadow:0 3px 0 #3d4150}
+button.admin.on{background:linear-gradient(135deg,var(--gold),#ffb300);box-shadow:0 3px 0 #d99a00;color:#5a2e42}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--card);padding:10px;border-radius:16px;box-shadow:0 6px 18px rgba(255,77,148,.15)}
+.cell{position:relative;background:var(--pink-light);border-radius:10px;padding:8px 6px;min-height:80px;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:.15s}
+.cell:active{transform:scale(.97)}
+.cell .num{font-size:11px;font-weight:bold;color:var(--pink-dark)}
+.cell textarea{width:100%;background:transparent;border:none;resize:none;font-size:12px;color:var(--text);text-align:center;font-weight:600;line-height:1.25;padding:2px 0;outline:none;cursor:pointer}
+.cell.unlocked textarea{cursor:text;background:rgba(255,255,255,.5);border-radius:6px}
+.cell:not(.unlocked) textarea{pointer-events:none}
+.cell.done{background:linear-gradient(135deg,var(--pink),var(--pink-dark));box-shadow:0 0 0 3px var(--gold) inset}
+.cell.done .num,.cell.done textarea{color:#fff}
+.cell .check{position:absolute;top:4px;right:6px;font-size:16px;opacity:0;transition:.15s}
+.cell.done .check{opacity:1}
+.editbar{text-align:center;margin-top:10px;font-size:12px;color:var(--sub)}
+.confetti{position:fixed;top:-10px;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999}
+.msg{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%) scale(0.5);background:#fff;border:3px solid var(--gold);color:var(--pink-dark);font-weight:bold;font-size:22px;padding:16px 28px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:1000;opacity:0;transition:.3s}
+.msg.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.overlay{position:fixed;inset:0;background:rgba(90,46,66,.45);display:none;align-items:center;justify-content:center;z-index:1100;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:20px;max-width:320px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.modal p{margin:0 0 10px;font-weight:bold;color:var(--text)}
+.modal input{width:100%;margin-bottom:12px}
+.modal .row{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>💗 PLUSビンゴカード 💗</h1>
+  <div class="namebox">
+    <label for="nameInput">お名前</label>
+    <input id="nameInput" type="text" placeholder="お名前を入力">
+  </div>
+  <div class="month-row">
+    <select id="monthSel"></select>
+    <button class="ghost" id="addMonthBtn">＋月を追加</button>
+    <button class="admin" id="adminBtn">🔒管理者</button>
+  </div>
+</header>
+<div class="grid" id="grid"></div>
+<div class="editbar" id="editbar">マスをタップで達成チェック</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <p id="modalTitle"></p>
+    <input id="modalInput" type="text">
+    <div class="row">
+      <button class="ghost" id="modalCancel">キャンセル</button>
+      <button id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_ITEMS=["出勤\n8日以上","出勤\n15日以上","通常日記\n10投稿","オキニトーク\n30人送信","姫予約\n3件","本指名\n5名","120分コース\n予約","動画日記\n5本","口コミ\n3件","求人口コミ\n1件投稿","性病検査","マイガール限定日記\n10本","イベント\n翌日出勤","YouTube\n出演","ショート動画\n出演","女性応援ポイント\n1000pt獲得"];
+const KEY="plus-bingo-data-v1";
+const ADMIN_PASS="0000";
+const GAS_URL="https://script.google.com/macros/s/AKfycbzQYV-incARZwAj79Ct1nH3Sdx7lmsyRKb7VEOhdnhJVrRzQswuQPtWtywQ2eOG4GVgjw/exec";
+let isAdmin=false;
+
+function sendToSheet(payload){
+  try{
+    fetch(GAS_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain"},
+      body:JSON.stringify(payload)
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+let data=load();
+if(!data.months) data.months={};
+if(typeof data.name!=="string") data.name="";
+function currentMonthKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+if(!Object.keys(data.months).length){
+  const k=currentMonthKey();
+  data.months[k]={cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]};
+  data.current=k;
+}
+if(!data.current||!data.months[data.current]) data.current=Object.keys(data.months)[0];
+
+const nameInput=document.getElementById("nameInput");
+nameInput.value=data.name;
+nameInput.addEventListener("change",()=>{ data.name=nameInput.value; save(data); });
+
+function monthSel(){return document.getElementById("monthSel")}
+function renderMonths(){
+  const sel=monthSel();
+  sel.innerHTML="";
+  Object.keys(data.months).sort().forEach(k=>{
+    const opt=document.createElement("option");
+    opt.value=k;opt.textContent=k;
+    if(k===data.current)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderGrid(){
+  const g=document.getElementById("grid");
+  g.innerHTML="";
+  const m=data.months[data.current];
+  m.cells.forEach((c,i)=>{
+    const cell=document.createElement("div");
+    cell.className="cell"+(c.done?" done":"")+(isAdmin?" unlocked":"");
+    cell.innerHTML=`<span class="num">${i+1}</span><span class="check">✅</span><textarea rows="3" ${isAdmin?"":"readonly"}>${c.text}</textarea>`;
+    const ta=cell.querySelector("textarea");
+    ta.addEventListener("click",e=>{ if(isAdmin) e.stopPropagation(); });
+    ta.addEventListener("change",()=>{c.text=ta.value;save(data)});
+    cell.addEventListener("click",()=>{
+      if(c.done){
+        openModal("このマスのチェックを外しますか？","text",()=>{
+          c.done=false;
+          save(data);
+          renderGrid();
+          sendToSheet({name:data.name,month:data.current,index:i+1,text:c.text,done:c.done});
+        },true);
+      }else{
+        c.done=true;
+        save(data);
+        renderGrid();
+        checkBingo();
+        sendToSheet({name:data.name,month:data.current,index:i+1,text:c.text,done:c.done});
+      }
+    });
+    g.appendChild(cell);
+  });
+  document.getElementById("editbar").textContent=isAdmin
+    ? "管理者モード：マスの文字を編集できます（タップでチェックも可能）"
+    : "マスをタップで達成チェック（内容の編集は管理者のみ）";
+}
+function getLines(){
+  const L=[];
+  for(let r=0;r<4;r++)L.push([r*4,r*4+1,r*4+2,r*4+3]);
+  for(let cIdx=0;cIdx<4;cIdx++)L.push([cIdx,cIdx+4,cIdx+8,cIdx+12]);
+  L.push([0,5,10,15]);L.push([3,6,9,12]);
+  return L;
+}
+function checkBingo(){
+  const m=data.months[data.current];
+  const lines=getLines();
+  m.lines=m.lines||[];
+  lines.forEach((line,idx)=>{
+    const complete=line.every(i=>m.cells[i].done);
+    if(complete && !m.lines.includes(idx)){
+      m.lines.push(idx);
+      save(data);
+      celebrate();
+    }
+  });
+}
+function celebrate(){
+  const msg=document.createElement("div");
+  msg.className="msg";
+  msg.textContent="🎉 ビンゴ達成！ 🎉";
+  document.body.appendChild(msg);
+  requestAnimationFrame(()=>msg.classList.add("show"));
+  setTimeout(()=>{msg.classList.remove("show");setTimeout(()=>msg.remove(),300)},1800);
+  const colors=["#ff7bac","#ffc93c","#ff4d94","#ffffff","#ffa8cb"];
+  for(let i=0;i<80;i++){
+    const p=document.createElement("div");
+    p.className="confetti";
+    p.style.left=Math.random()*100+"vw";
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.transform=`rotate(${Math.random()*360}deg)`;
+    const dur=2+Math.random()*1.5;
+    p.style.transition=`transform ${dur}s ease-in, top ${dur}s ease-in, opacity ${dur}s`;
+    document.body.appendChild(p);
+    requestAnimationFrame(()=>{
+      p.style.top=(100+Math.random()*20)+"vh";
+      p.style.transform=`translateX(${(Math.random()-0.5)*200}px) rotate(${Math.random()*720}deg)`;
+      p.style.opacity="0.2";
+    });
+    setTimeout(()=>p.remove(),dur*1000+200);
+  }
+}
+
+const overlay=document.getElementById("overlay");
+const modalTitle=document.getElementById("modalTitle");
+const modalInput=document.getElementById("modalInput");
+const modalOk=document.getElementById("modalOk");
+const modalCancel=document.getElementById("modalCancel");
+function openModal(title,type,onOk,hideInput){
+  modalTitle.textContent=title;
+  modalInput.style.display=hideInput?"none":"block";
+  modalInput.type=type;
+  modalInput.value="";
+  overlay.classList.add("show");
+  if(!hideInput) setTimeout(()=>modalInput.focus(),50);
+  const okHandler=()=>{ cleanup(); onOk(modalInput.value); };
+  const cancelHandler=()=>{ cleanup(); };
+  const keyHandler=(e)=>{ if(e.key==="Enter") okHandler(); if(e.key==="Escape") cancelHandler(); };
+  function cleanup(){
+    overlay.classList.remove("show");
+    modalOk.removeEventListener("click",okHandler);
+    modalCancel.removeEventListener("click",cancelHandler);
+    modalInput.removeEventListener("keydown",keyHandler);
+  }
+  modalOk.addEventListener("click",okHandler);
+  modalCancel.addEventListener("click",cancelHandler);
+  modalInput.addEventListener("keydown",keyHandler);
+}
+
+document.getElementById("addMonthBtn").addEventListener("click",()=>{
+  openModal("追加する月を入力（例: 2026-10）","text",(val)=>{
+    if(!val) return;
+    if(!data.months[val]){
+      data.months[val]={cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]};
+    }
+    data.current=val;
+    save(data);
+    renderMonths();
+    renderGrid();
+  });
+});
+
+const adminBtn=document.getElementById("adminBtn");
+function updateAdminBtn(){
+  adminBtn.textContent=isAdmin?"🔓管理者中":"🔒管理者";
+  adminBtn.classList.toggle("on",isAdmin);
+}
+adminBtn.addEventListener("click",()=>{
+  if(isAdmin){
+    isAdmin=false;
+    updateAdminBtn();
+    renderGrid();
+    return;
+  }
+  openModal("管理者パスコードを入力","password",(val)=>{
+    if(val===ADMIN_PASS){
+      isAdmin=true;
+      updateAdminBtn();
+      renderGrid();
+    }
+  });
+});
+
+monthSel().addEventListener("change",e=>{
+  data.current=e.target.value;
+  save(data);
+  renderGrid();
+});
+
+renderMonths();
+renderGrid();
+updateAdminBtn();
+</script>
+</body>
+</html>
