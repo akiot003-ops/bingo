@@ -2,380 +2,288 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>PLUSビンゴカード</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plus+ ビンゴ</title>
 <style>
-:root{
-  --pink:#ff7bac; --pink-dark:#ff4d94; --pink-light:#ffe3ef; --gold:#ffc93c;
-  --bg:#fff5f9; --card:#ffffff; --text:#5a2e42; --sub:#a15a78;
-  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:linear-gradient(160deg,#fff0f6,#ffe6f0);font-family:"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);min-height:100%;padding:16px}
-.wrap{max-width:520px;margin:0 auto;display:none}
-.wrap.show{display:block}
-header{text-align:center;margin-bottom:14px}
-h1{font-size:22px;background:linear-gradient(90deg,var(--pink-dark),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0}
-.namebox{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.namebox label{font-size:12px;color:var(--sub);font-weight:bold}
-.namebox input{width:150px;text-align:center;font-weight:bold}
-.store-row,.month-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
-select,button,input{font-family:inherit;font-size:15px;border-radius:10px;border:1px solid #ffc2da;padding:8px 12px;background:#fff;color:var(--text)}
-button{background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:#fff;border:none;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 #d9407e}
-button:active{transform:translateY(2px);box-shadow:none}
-button.ghost{background:#fff;color:var(--pink-dark);border:1px solid var(--pink);box-shadow:none}
-button.admin{background:linear-gradient(135deg,#8a8f9b,#5b6070);box-shadow:0 3px 0 #3d4150}
-button.admin.on{background:linear-gradient(135deg,var(--gold),#ffb300);box-shadow:0 3px 0 #d99a00;color:#5a2e42}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--card);padding:10px;border-radius:16px;box-shadow:0 6px 18px rgba(255,77,148,.15)}
-.cell{position:relative;background:var(--pink-light);border-radius:10px;padding:8px 6px;min-height:80px;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:.15s}
-.cell:active{transform:scale(.97)}
-.cell .num{font-size:11px;font-weight:bold;color:var(--pink-dark)}
-.cell textarea{width:100%;background:transparent;border:none;resize:none;font-size:12px;color:var(--text);text-align:center;font-weight:600;line-height:1.25;padding:2px 0;outline:none;cursor:pointer}
-.cell.unlocked textarea{cursor:text;background:rgba(255,255,255,.5);border-radius:6px}
-.cell:not(.unlocked) textarea{pointer-events:none}
-.cell.done{background:linear-gradient(135deg,var(--pink),var(--pink-dark));box-shadow:0 0 0 3px var(--gold) inset}
-.cell.done .num,.cell.done textarea{color:#fff}
-.cell .check{position:absolute;top:4px;right:6px;font-size:16px;opacity:0;transition:.15s}
-.cell.done .check{opacity:1}
-.editbar{text-align:center;margin-top:10px;font-size:12px;color:var(--sub)}
-.confetti{position:fixed;top:-10px;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999}
-.msg{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%) scale(0.5);background:#fff;border:3px solid var(--gold);color:var(--pink-dark);font-weight:bold;font-size:22px;padding:16px 28px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:1000;opacity:0;transition:.3s}
-.msg.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.overlay{position:fixed;inset:0;background:rgba(90,46,66,.45);display:none;align-items:center;justify-content:center;z-index:1100;padding:16px}
-.overlay.show{display:flex}
-.modal{background:#fff;border-radius:16px;padding:20px;max-width:320px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.modal p{margin:0 0 10px;font-weight:bold;color:var(--text)}
-.modal input{width:100%;margin-bottom:12px}
-.modal .row{display:flex;gap:8px;justify-content:flex-end}
-.lockscreen{position:fixed;inset:0;background:linear-gradient(160deg,#ff7bac,#c94a8c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000;color:#fff;padding:24px;text-align:center}
-.lockscreen h2{font-size:24px;margin:0 0 6px}
-.lockscreen p{font-size:13px;opacity:.9;margin:0 0 18px}
-.lockscreen input{width:200px;text-align:center;font-size:20px;letter-spacing:4px;border:none;margin-bottom:14px}
-.lockscreen button{background:#fff;color:var(--pink-dark);box-shadow:none;padding:10px 28px}
-.lockscreen .err{color:#fff;background:rgba(0,0,0,.2);border-radius:8px;padding:6px 12px;font-size:12px;margin-top:10px;display:none}
-.lockscreen .err.show{display:block}
+:root{--bg:#fff5f9;--card:#ffffff;--text:#5a2e42;--sub:#a15a78;--accent:#ff6f9f;--line:#ffd6e6;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:var(--bg);color:var(--text);}
+#lockScreen{position:fixed;inset:0;background:linear-gradient(160deg,#2a1420,#4a1f33);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;color:#fff;}
+#lockScreen h1{font-size:32px;letter-spacing:2px;margin-bottom:24px;font-weight:300;}
+#lockScreen input{font-size:24px;letter-spacing:8px;text-align:center;width:180px;padding:10px;border-radius:12px;border:none;margin-bottom:16px;}
+#lockScreen button{padding:10px 24px;border-radius:20px;border:none;background:var(--accent);color:#fff;font-size:16px;}
+#lockError{color:#ffb3c6;font-size:13px;height:18px;}
+#app{display:none;max-width:480px;margin:0 auto;padding:16px;}
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);font-size:16px;background:#fff;color:var(--text);}
+label{font-size:13px;color:var(--sub);display:block;margin-bottom:4px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
+.cell{aspect-ratio:1;background:#fff;border:2px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;white-space:pre-line;padding:4px;cursor:pointer;transition:.15s;}
+.cell.done{background:var(--accent);color:#fff;border-color:var(--accent);}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:500;}
+#modal{background:#fff;border-radius:16px;padding:20px;width:80%;max-width:320px;text-align:center;}
+#modal p{margin:0 0 16px;}
+#modal .btns{display:flex;gap:10px;}
+#modal button{flex:1;padding:10px;border-radius:10px;border:none;font-size:15px;}
+#modal .yes{background:var(--accent);color:#fff;}
+#modal .no{background:#eee;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:600;}
+#bingoMsg{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:var(--accent);color:#fff;padding:16px 28px;border-radius:20px;font-size:20px;font-weight:bold;display:none;z-index:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.hint{font-size:12px;color:var(--sub);text-align:center;margin-top:8px;}
 </style>
 </head>
 <body>
 
-<div class="lockscreen" id="lockscreen">
-  <h2>Plus+</h2>
-  <p>パスコードを入力してください</p>
-  <input id="lockInput" type="password" inputmode="numeric">
-  <button id="lockBtn">開く</button>
-  <div class="err" id="lockErr">パスコードが違います</div>
+<div id="lockScreen">
+  <h1>Plus+</h1>
+  <input type="password" id="entryInput" inputmode="numeric" maxlength="8" placeholder="パスコード">
+  <div id="lockError"></div>
+  <button onclick="tryEntry()">開く</button>
 </div>
 
-<div class="wrap" id="wrap">
-<header>
-  <h1>💗 PLUSビンゴカード 💗</h1>
-  <div class="store-row">
-    <select id="storeSel"></select>
+<div id="app">
+  <div class="card">
+    <label>店舗</label>
+    <select id="storeSelect"></select>
   </div>
-  <div class="namebox">
-    <label for="nameInput">お名前</label>
-    <input id="nameInput" type="text" placeholder="お名前を入力">
+  <div class="card">
+    <label>お名前</label>
+    <select id="nameSelect"><option value="">-- 選択してください --</option></select>
+    <div class="hint" id="nameHint"></div>
   </div>
-  <div class="month-row">
-    <select id="monthSel"></select>
-    <button class="ghost" id="addMonthBtn">＋月を追加</button>
-    <button class="ghost" id="delMonthBtn">－月を削除</button>
-    <button class="admin" id="adminBtn">🔒管理者</button>
-  </div>
-</header>
-<div class="grid" id="grid"></div>
-<div class="editbar" id="editbar">マスをタップで達成チェック</div>
-</div>
-
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <p id="modalTitle"></p>
-    <input id="modalInput" type="text">
-    <div class="row">
-      <button class="ghost" id="modalCancel">キャンセル</button>
-      <button id="modalOk">OK</button>
-    </div>
+  <div class="card">
+    <div id="monthLabel" style="font-size:14px;color:var(--sub);text-align:center;"></div>
+    <div class="grid" id="grid"></div>
   </div>
 </div>
 
-<script>
-const DEFAULT_ITEMS=["出勤\n8日以上","出勤\n15日以上","通常日記\n10投稿","オキニトーク\n30人送信","姫予約\n3件","本指名\n5名","120分コース\n予約","動画日記\n5本","口コミ\n3件","求人口コミ\n1件投稿","性病検査","マイガール限定日記\n10本","イベント\n翌日出勤","YouTube\n出演","ショート動画\n出演","女性応援ポイント\n1000pt獲得"];
-const KEY="plus-bingo-data-v2";
-const ADMIN_PASS="8812";
-const ENTRY_PASS="1194";
-const GAS_URL="https://script.google.com/macros/s/AKfycbyI_csB9Jjq8HMcMgTzQDajb_nReHIZtYnOi0bzlsPsu7ndn_pl3Yc-Fs7p8Zeu2DtK/exec";
-let isAdmin=false;
+<div id="overlay"><div id="modal"></div></div>
+<div id="bingoMsg">🎉 ビンゴ達成！</div>
+<canvas id="confetti"></canvas>
 
-function sendToSheet(payload){
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAjbCSxtMM5zsoaIZBX6dw9q2rebhCCHeg",
+  authDomain: "plus-bingo-8f37d.firebaseapp.com",
+  projectId: "plus-bingo-8f37d",
+  storageBucket: "plus-bingo-8f37d.firebasestorage.app",
+  messagingSenderId: "617575866890",
+  appId: "1:617575866890:web:db9eec940477abf238b5f3"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+const ENTRY_PASS = "1194";
+const PRESET_STORES = ["梅田店","十三店","難波店","東大阪店"];
+const DEFAULT_ITEMS = ["出勤\n8日以上","出勤\n15日以上","通常日記\n10投稿","オキニトーク\n30人送信","姫予約\n3件","本指名\n5名","120分コース\n予約","動画日記\n5本","口コミ\n3件","求人口コミ\n1件投稿","性病検査","マイガール限定日記\n10本","イベント\n翌日出勤","YouTube\n出演","ショート動画\n出演","女性応援ポイント\n1000pt獲得"];
+
+function currentMonthKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+function monthLabelText(k){const [y,m]=k.split("-");return y+"年"+parseInt(m,10)+"月";}
+
+let bingoItems = DEFAULT_ITEMS;
+let currentStore = PRESET_STORES[0];
+let currentName = "";
+let currentDocId = null;
+let cells = [];
+let unsub = null;
+
+function showModal(text, onYes){
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `<p>${text}</p><div class="btns"><button class="no" onclick="closeModal()">キャンセル</button><button class="yes" id="yesBtn">はい</button></div>`;
+  document.getElementById("overlay").style.display = "flex";
+  document.getElementById("yesBtn").onclick = () => { closeModal(); onYes(); };
+}
+window.closeModal = () => { document.getElementById("overlay").style.display = "none"; };
+
+window.tryEntry = () => {
+  const v = document.getElementById("entryInput").value;
+  if (v === ENTRY_PASS) {
+    document.getElementById("lockScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+  } else {
+    document.getElementById("lockError").textContent = "パスコードが違います";
+  }
+};
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    document.getElementById("app").style.display = "none";
+    document.getElementById("lockScreen").style.display = "flex";
+    document.getElementById("entryInput").value = "";
+  }
+});
+window.addEventListener("pageshow", () => {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("lockScreen").style.display = "flex";
+});
+
+async function loadBingoConfig(){
   try{
-    fetch(GAS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(()=>{});
+    const snap = await getDoc(doc(db,"bingoConfig","shared"));
+    if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length === 16) {
+      bingoItems = snap.data().items;
+    }
   }catch(e){}
 }
 
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
-function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
-let data=load();
-function currentMonthKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
-function newMonth(){return{cells:DEFAULT_ITEMS.map(t=>({text:t,done:false})),lines:[]}}
-function newStore(){const k=currentMonthKey();return{name:"",current:k,months:{[k]:newMonth()}}}
-if(!data.stores) data.stores={};
-const PRESET_STORES=["梅田店","十三店","難波店","東大阪店"];
-PRESET_STORES.forEach(name=>{
-  if(!data.stores[name]) data.stores[name]=newStore();
-});
-if(!data.currentStore||!data.stores[data.currentStore]) data.currentStore=PRESET_STORES[0];
-function curStore(){return data.stores[data.currentStore]}
-
-const nameInput=document.getElementById("nameInput");
-function loadNameField(){
-  nameInput.value=curStore().name||"";
-  nameInput.readOnly=!isAdmin && !!curStore().name;
-}
-nameInput.addEventListener("change",()=>{ curStore().name=nameInput.value; save(data); loadNameField(); });
-
-function storeSel(){return document.getElementById("storeSel")}
-function renderStores(){
-  const sel=storeSel();
-  sel.innerHTML="";
-  Object.keys(data.stores).forEach(k=>{
-    const opt=document.createElement("option");
-    opt.value=k;opt.textContent=k;
-    if(k===data.currentStore)opt.selected=true;
+async function loadNames(store){
+  const sel = document.getElementById("nameSelect");
+  sel.innerHTML = `<option value="">-- 選択してください --</option>`;
+  const q = query(collection(db,"companions"), where("store","==",store), where("active","==",true));
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    document.getElementById("nameHint").textContent = "この店舗のコンパニオンが未登録です。管理画面で登録してください。";
+    return;
+  }
+  document.getElementById("nameHint").textContent = "";
+  snap.forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d.data().name;
+    opt.textContent = d.data().name;
     sel.appendChild(opt);
   });
 }
 
-function monthSel(){return document.getElementById("monthSel")}
-function renderMonths(){
-  const sel=monthSel();
-  sel.innerHTML="";
-  const s=curStore();
-  Object.keys(s.months).sort().forEach(k=>{
-    const opt=document.createElement("option");
-    opt.value=k;opt.textContent=k;
-    if(k===s.current)opt.selected=true;
+function buildStoreSelect(){
+  const sel = document.getElementById("storeSelect");
+  PRESET_STORES.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s; opt.textContent = s;
     sel.appendChild(opt);
+  });
+  sel.value = currentStore;
+  sel.addEventListener("change", () => {
+    currentStore = sel.value;
+    loadNames(currentStore);
+    document.getElementById("nameSelect").value = "";
+    currentName = "";
+    stopWatch();
+    renderEmptyGrid();
   });
 }
 
-function renderGrid(){
-  const g=document.getElementById("grid");
-  g.innerHTML="";
-  const s=curStore();
-  const m=s.months[s.current];
-  m.cells.forEach((c,i)=>{
-    const cell=document.createElement("div");
-    cell.className="cell"+(c.done?" done":"")+(isAdmin?" unlocked":"");
-    cell.innerHTML=`<span class="num">${i+1}</span><span class="check">✅</span><textarea rows="3" ${isAdmin?"":"readonly"}>${c.text}</textarea>`;
-    const ta=cell.querySelector("textarea");
-    ta.addEventListener("click",e=>{ if(isAdmin) e.stopPropagation(); });
-    ta.addEventListener("change",()=>{c.text=ta.value;save(data)});
-    cell.addEventListener("click",()=>{
-      if(c.done){
-        openModal("このマスのチェックを外しますか？","text",()=>{
-          c.done=false;
-          save(data);
-          renderGrid();
-          sendToSheet({store:data.currentStore,name:s.name,month:s.current,index:i+1,text:c.text,done:c.done});
-        },true);
-      }else{
-        c.done=true;
-        save(data);
-        renderGrid();
-        checkBingo();
-        sendToSheet({store:data.currentStore,name:s.name,month:s.current,index:i+1,text:c.text,done:c.done});
-      }
-    });
-    g.appendChild(cell);
-  });
-  document.getElementById("editbar").textContent=isAdmin
-    ? "管理者モード：マスの文字を編集できます（タップでチェックも可能）"
-    : "マスをタップで達成チェック（内容の編集は管理者のみ）";
+function renderEmptyGrid(){
+  document.getElementById("monthLabel").textContent = "";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 }
+
+function stopWatch(){ if (unsub) { unsub(); unsub = null; } }
+
+async function selectName(name){
+  currentName = name;
+  stopWatch();
+  if (!name) { renderEmptyGrid(); return; }
+  const monthKey = currentMonthKey();
+  currentDocId = `${currentStore}_${name}_${monthKey}`;
+  document.getElementById("monthLabel").textContent = monthLabelText(monthKey);
+
+  const ref = doc(db, "progress", currentDocId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    cells = bingoItems.map(t => ({text:t, done:false}));
+    await setDoc(ref, {store:currentStore, name, monthKey, cells, lineCount:0, lines:[], updatedAt:new Date()});
+  }
+  unsub = onSnapshot(ref, (s) => {
+    if (!s.exists()) return;
+    cells = s.data().cells;
+    renderGrid();
+  });
+}
+
 function getLines(){
   const L=[];
   for(let r=0;r<4;r++)L.push([r*4,r*4+1,r*4+2,r*4+3]);
-  for(let cIdx=0;cIdx<4;cIdx++)L.push([cIdx,cIdx+4,cIdx+8,cIdx+12]);
-  L.push([0,5,10,15]);L.push([3,6,9,12]);
+  for(let c=0;c<4;c++)L.push([c,c+4,c+8,c+12]);
+  L.push([0,5,10,15]); L.push([3,6,9,12]);
   return L;
 }
-function checkBingo(){
-  const s=curStore();
-  const m=s.months[s.current];
-  const lines=getLines();
-  m.lines=m.lines||[];
-  lines.forEach((line,idx)=>{
-    const complete=line.every(i=>m.cells[i].done);
-    if(complete && !m.lines.includes(idx)){
-      m.lines.push(idx);
-      save(data);
-      celebrate();
-      sendToSheet({type:"bingo",store:data.currentStore,name:s.name,month:s.current});
-    }
+
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  cells.forEach((c,i) => {
+    const div = document.createElement("div");
+    div.className = "cell" + (c.done ? " done" : "");
+    div.textContent = c.text;
+    div.onclick = () => onCellTap(i);
+    grid.appendChild(div);
   });
 }
+
+async function onCellTap(i){
+  if (!currentDocId) return;
+  if (cells[i].done) {
+    showModal("このマスのチェックを外しますか？", async () => { await setCell(i, false); });
+  } else {
+    await setCell(i, true);
+  }
+}
+
+async function setCell(i, done){
+  cells[i].done = done;
+  const ref = doc(db, "progress", currentDocId);
+  await setDoc(ref, {cells}, {merge:true});
+  if (done) checkBingo(ref);
+}
+
+async function checkBingo(ref){
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const lines = data.lines || [];
+  const newLines = [];
+  getLines().forEach((line, idx) => {
+    if (lines.includes(idx)) return;
+    if (line.every(pos => cells[pos].done)) newLines.push(idx);
+  });
+  if (newLines.length === 0) return;
+  const updatedLines = [...lines, ...newLines];
+  const lineCount = Math.min(updatedLines.length, 10);
+  await setDoc(ref, {lines:updatedLines, lineCount, lastAchievedAt:new Date()}, {merge:true});
+  celebrate();
+}
+
 function celebrate(){
-  const msg=document.createElement("div");
-  msg.className="msg";
-  msg.textContent="🎉 ビンゴ達成！ 🎉";
-  document.body.appendChild(msg);
-  requestAnimationFrame(()=>msg.classList.add("show"));
-  setTimeout(()=>{msg.classList.remove("show");setTimeout(()=>msg.remove(),300)},1800);
-  const colors=["#ff7bac","#ffc93c","#ff4d94","#ffffff","#ffa8cb"];
-  for(let i=0;i<80;i++){
-    const p=document.createElement("div");
-    p.className="confetti";
-    p.style.left=Math.random()*100+"vw";
-    p.style.background=colors[Math.floor(Math.random()*colors.length)];
-    p.style.transform=`rotate(${Math.random()*360}deg)`;
-    const dur=2+Math.random()*1.5;
-    p.style.transition=`transform ${dur}s ease-in, top ${dur}s ease-in, opacity ${dur}s`;
-    document.body.appendChild(p);
-    requestAnimationFrame(()=>{
-      p.style.top=(100+Math.random()*20)+"vh";
-      p.style.transform=`translateX(${(Math.random()-0.5)*200}px) rotate(${Math.random()*720}deg)`;
-      p.style.opacity="0.2";
+  const msg = document.getElementById("bingoMsg");
+  msg.style.display = "block";
+  fireConfetti();
+  setTimeout(() => { msg.style.display = "none"; }, 2200);
+}
+
+function fireConfetti(){
+  const canvas = document.getElementById("confetti");
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  const ctx = canvas.getContext("2d");
+  const colors = ["#ff6f9f","#ffd6e6","#ffb3c6","#fff5f9","#ff9fc2"];
+  const parts = Array.from({length:80}, () => ({
+    x: Math.random()*canvas.width, y: -20, r: 4+Math.random()*4,
+    vy: 2+Math.random()*3, vx: -2+Math.random()*4, c: colors[Math.floor(Math.random()*colors.length)]
+  }));
+  let frame = 0;
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      ctx.fillStyle = p.c;
+      ctx.fillRect(p.x, p.y, p.r, p.r);
     });
-    setTimeout(()=>p.remove(),dur*1000+200);
+    frame++;
+    if (frame < 90) requestAnimationFrame(tick);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
   }
+  tick();
 }
 
-const overlay=document.getElementById("overlay");
-const modalTitle=document.getElementById("modalTitle");
-const modalInput=document.getElementById("modalInput");
-const modalOk=document.getElementById("modalOk");
-const modalCancel=document.getElementById("modalCancel");
-function openModal(title,type,onOk,hideInput){
-  modalTitle.textContent=title;
-  modalInput.style.display=hideInput?"none":"block";
-  modalInput.type=type;
-  modalInput.value="";
-  overlay.classList.add("show");
-  if(!hideInput) setTimeout(()=>modalInput.focus(),50);
-  const okHandler=()=>{ cleanup(); onOk(modalInput.value); };
-  const cancelHandler=()=>{ cleanup(); };
-  const keyHandler=(e)=>{ if(e.key==="Enter") okHandler(); if(e.key==="Escape") cancelHandler(); };
-  function cleanup(){
-    overlay.classList.remove("show");
-    modalOk.removeEventListener("click",okHandler);
-    modalCancel.removeEventListener("click",cancelHandler);
-    modalInput.removeEventListener("keydown",keyHandler);
-  }
-  modalOk.addEventListener("click",okHandler);
-  modalCancel.addEventListener("click",cancelHandler);
-  modalInput.addEventListener("keydown",keyHandler);
-}
+document.getElementById("nameSelect").addEventListener("change", (e) => selectName(e.target.value));
 
-storeSel().addEventListener("change",e=>{
-  data.currentStore=e.target.value;
-  save(data);
-  loadNameField();
-  renderMonths();
-  renderGrid();
-});
-
-document.getElementById("addMonthBtn").addEventListener("click",()=>{
-  openModal("追加する月を入力（例: 2026-10）","text",(val)=>{
-    if(!val) return;
-    const s=curStore();
-    if(!s.months[val]) s.months[val]=newMonth();
-    s.current=val;
-    save(data);
-    renderMonths();
-    renderGrid();
-  });
-});
-monthSel().addEventListener("change",e=>{
-  curStore().current=e.target.value;
-  save(data);
-  renderGrid();
-});
-
-document.getElementById("delMonthBtn").addEventListener("click",()=>{
-  const s=curStore();
-  const target=s.current;
-  openModal(target+" を削除しますか？（このマスのデータも消えます）","text",()=>{
-    delete s.months[target];
-    const remaining=Object.keys(s.months).sort();
-    if(remaining.length){
-      s.current=remaining[0];
-    }else{
-      const k=currentMonthKey();
-      s.months[k]=newMonth();
-      s.current=k;
-    }
-    save(data);
-    renderMonths();
-    renderGrid();
-  },true);
-});
-
-const adminBtn=document.getElementById("adminBtn");
-function updateAdminBtn(){
-  adminBtn.textContent=isAdmin?"🔓管理者中":"🔒管理者";
-  adminBtn.classList.toggle("on",isAdmin);
-}
-adminBtn.addEventListener("click",()=>{
-  if(isAdmin){
-    isAdmin=false;
-    updateAdminBtn();
-    renderGrid();
-    loadNameField();
-    return;
-  }
-  openModal("管理者パスコードを入力","password",(val)=>{
-    if(val===ADMIN_PASS){
-      isAdmin=true;
-      updateAdminBtn();
-      renderGrid();
-      loadNameField();
-    }
-  });
-});
-
-function initApp(){
-  renderStores();
-  loadNameField();
-  renderMonths();
-  renderGrid();
-  updateAdminBtn();
-  document.getElementById("wrap").classList.add("show");
-}
-
-const lockscreen=document.getElementById("lockscreen");
-const lockInput=document.getElementById("lockInput");
-const lockBtn=document.getElementById("lockBtn");
-const lockErr=document.getElementById("lockErr");
-let unlocked=false;
-function tryUnlock(){
-  if(lockInput.value===ENTRY_PASS){
-    unlocked=true;
-    lockscreen.style.display="none";
-    initApp();
-  }else{
-    lockErr.classList.add("show");
-    lockInput.value="";
-  }
-}
-function relock(){
-  unlocked=false;
-  lockscreen.style.display="flex";
-  document.getElementById("wrap").classList.remove("show");
-  lockInput.value="";
-  lockErr.classList.remove("show");
-  setTimeout(()=>lockInput.focus(),300);
-}
-lockBtn.addEventListener("click",tryUnlock);
-lockInput.addEventListener("keydown",e=>{ if(e.key==="Enter") tryUnlock(); });
-setTimeout(()=>lockInput.focus(),300);
-
-window.addEventListener("pageshow",()=>{ if(unlocked) relock(); });
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="hidden" && unlocked){
-    relock();
-  }
-});
+(async function init(){
+  buildStoreSelect();
+  await loadBingoConfig();
+  await loadNames(currentStore);
+})();
 </script>
 </body>
 </html>
